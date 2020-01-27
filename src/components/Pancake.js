@@ -1,85 +1,68 @@
-import React from "react";
+import React from 'react';
 
-class Pancake extends React.Component {
+import Pancake from './Pancake';
+
+class Game extends React.Component {
+
   constructor(props) {
     super(props);
 
     this.state = {
-      timeCooked: 0,
-      flippedAt: undefined
+      time: undefined,
+      pancakes: [],
+      cooked: 0,
+      burnt: 0,
+      raw: 0
     };
   }
 
-  // TODO: create a componentDidMount() which will start the interval to count how long the pancake has been cooking
+  componentDidMount() {
+    this.setCurrentTime();
+  }
 
-  // TODO: create a componentWillUnmount() which will clear the interval
+  setCurrentTime = () => {
+    this.setState({ time: new Date(Date.now())});
+  }
 
-  updateCounter = () => {
+  addPancake = () => {
     this.setState({
-      timeCooked: this.state.timeCooked + 1
+      pancakes: this.state.pancakes.concat(Date.now())
     });
-  };
+  }
 
-  startInterval = () => {
-    this.interval = setInterval(this.updateCounter, 1000);
-  };
+  takeItOff = (id, status) => {
+    const { pancakes, cooked, burnt, raw } = this.state;
 
-  cleanUpInterval = () => {
-    clearInterval(this.interval);
-  };
-
-  flip = () => {
     this.setState({
-      flippedAt: this.state.timeCooked
+      pancakes: pancakes.filter(pancake => !(pancake === id)),
+      cooked: status === 'cooked' ? cooked + 1 : cooked,
+      burnt: status === 'burnt' ? burnt + 1 : burnt,
+      raw: status === 'raw' ? raw + 1 : raw
     });
-  };
-
-  getPancakeStatus = () => {
-    const { timeCooked, flippedAt } = this.state;
-
-    // first side
-    if (!flippedAt) {
-      if (timeCooked < 2) return "raw";
-      if (timeCooked === 2) return "cooked";
-      return "burnt";
-    }
-
-    //second side
-    if (flippedAt > 2 || timeCooked > 4) return "burnt";
-    if (timeCooked === 4 && flippedAt === 2) return "cooked";
-    return "raw";
-  };
-
-  takeItOff = () => {
-    const { id } = this.props;
-    let status = this.getPancakeStatus();
-    this.props.takeItOff(id, status);
-  };
+  }
 
   render() {
-    const { timeCooked, flippedAt } = this.state;
-    const firstSide = Boolean(this.state.flippedAt === undefined);
-    const status = this.getPancakeStatus();
+    const { pancakes, burnt, cooked, raw, time } = this.state;
+    const pans = pancakes.map((pancake, index) => <Pancake key={index} id={pancake} takeItOff={this.takeItOff} />);
 
     return (
-      <div className={`Pancake --${status}`}>
-        <div className="Pancake__content">
-          <p>I am a pancake.</p>
-          <p>
-            Time cooked on {`${firstSide ? "first" : "second"}`} side:{" "}
-            {`${firstSide ? timeCooked : timeCooked - flippedAt}`}
-          </p>
-          <div>
-            {firstSide ? (
-              <button onClick={this.flip}>Flip me!</button>
-            ) : (
-              <button onClick={this.takeItOff}>Take me off!</button>
-            )}
-          </div>
+      <div className="Game">
+        <span>Pancake shop opened at: {time ? time.toString() : ''}</span>
+        <div>
+          <div className="Game__score --cooked">Cooked: {cooked}</div>
+          <div className="Game__score --burnt">Burnt: {burnt}</div>
+          <div className="Game__score --raw">Raw: {raw}</div>
         </div>
+        <button
+          onClick={this.addPancake}
+          className="Game__button"
+        >
+          New pancake!
+        </button>
+        <div className="Game__pancakes">{pans}</div>
       </div>
-    );
+    )
   }
 }
 
-export default Pancake;
+export default Game;
